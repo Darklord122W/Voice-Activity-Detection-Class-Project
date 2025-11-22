@@ -13,5 +13,3 @@
 # Except readme
 !readme.md
 
-# Except SpeechCommands folder if needed
-!SpeechCommands/
