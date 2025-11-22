@@ -1,0 +1,17 @@
+# Ignore everything
+*
+
+# Except Python code
+!*.py
+
+# Except notebooks
+!*.ipynb
+
+# Except the .gitignore itself
+!.gitignore
+
+# Except readme
+!readme.md
+
+# Except SpeechCommands folder if needed
+!SpeechCommands/
