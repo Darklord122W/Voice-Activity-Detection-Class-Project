@@ -12,6 +12,7 @@
 
 !plots/
 !plots/**
+!vad_results.csv
 
 # Except readme
 !readme.md
