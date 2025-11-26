@@ -84,12 +84,15 @@ class BiLSTMVad(nn.Module):
     def __init__(self, n_features: int, hidden_size: int = 128, num_layers: int = 2, dropout: float = 0.0):
         super().__init__()
         # TODO: define the BiLSTM-based architecture
-        input_size=n_features,
-        hidden_size=hidden_size,
-        num_layers=num_layers,
-        dropout=dropout if num_layers > 1 else 0.0,
-        bidirectional=True,
-        batch_first=True,
+        self.lstm = nn.LSTM(
+            input_size=n_features,
+            hidden_size=hidden_size,
+            num_layers=num_layers,
+            dropout=dropout if num_layers > 1 else 0.0,
+            bidirectional=True,
+            batch_first=True,
+        )
+        # Hidden size is doubled in a BiLSTM
         self.fc = nn.Linear(hidden_size * 2, NUM_CLASSES)
 
     def forward(self, x):
@@ -176,7 +179,9 @@ class CNNLSTMVad(nn.Module):
         # Create LSTM when first known
         if self.lstm is None:
             self._build_recurrent(C * Fp)
-
+            self.lstm = self.lstm.to(cnn_out.device)
+            self.fc = self.fc.to(cnn_out.device)
+            
         lstm_out, _ = self.lstm(cnn_out)   # [B, T', H or 2H]
         logits = self.fc(lstm_out)         # [B, T', 2]
         return logits

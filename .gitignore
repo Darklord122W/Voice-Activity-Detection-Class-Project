@@ -10,6 +10,9 @@
 # Except the .gitignore itself
 !.gitignore
 
+!plots/
+!plots/**
+
 # Except readme
 !readme.md
 

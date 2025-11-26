@@ -20,6 +20,7 @@ from dataloader import create_vad_dataloaders
 from models import build_model,init_weights_xavier
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 
 # ------------------------------------------------------------
@@ -61,7 +62,8 @@ def train_model(model, train_dl, val_dl, epochs=20, lr=1e-3, patience=3):
     # TODO: define optimizer
     # TODO: define learning rate scheduler
     # TODO: initialize early stopping variables and tracking lists
-    criterion = nn.CrossEntropyLoss()
+    
+    criterion = nn.CrossEntropyLoss(ignore_index=-1)
     optimizer = optim.Adam(model.parameters(), lr=lr)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode="min", factor=0.5, patience=2
@@ -88,8 +90,12 @@ def train_model(model, train_dl, val_dl, epochs=20, lr=1e-3, patience=3):
         # -------------------
         # Training batches
         # -------------------
-        for xb, yb in train_dl:
-            xb, yb = xb.to(device), yb.to(device)
+        for batch in train_dl:
+            xb = batch[0]   # X_pad
+            yb = batch[1]   # Y_pad
+
+            xb = xb.to(device)
+            yb = yb.to(device)
 
             optimizer.zero_grad()
 
@@ -132,8 +138,12 @@ def train_model(model, train_dl, val_dl, epochs=20, lr=1e-3, patience=3):
         all_labels = []
 
         with torch.no_grad():
-            for xb, yb in val_dl:
-                xb, yb = xb.to(device), yb.to(device)
+            for batch in val_dl:
+                xb = batch[0]   # X_pad
+                yb = batch[1]   # Y_pad
+
+                xb = xb.to(device)
+                yb = yb.to(device)
 
                 logits = model(xb)
 
@@ -215,7 +225,9 @@ def evaluate_model(model, test_dl):
     all_labels = []
 
     with torch.no_grad():
-        for xb, yb in test_dl:
+        for batch in test_dl:
+            xb = batch[0]   # X_pad
+            yb = batch[1]   # Y_pad
             xb, yb = xb.to(device), yb.to(device)
 
             logits = model(xb)
@@ -272,7 +284,13 @@ def run_experiment(model_name, n_features=40, hidden_size=128, layers=2, seq_len
     plt.ylabel("Loss")
     plt.legend()
     plt.grid(True)
-    plt.show()
+    os.makedirs("plots", exist_ok=True)  # create folder if not exists
+    # File path
+    fig_path = f"plots/{model_name}_seq{seq_len}_hid{hidden_size}_layers{layers}.png"
+
+    plt.tight_layout()
+    plt.savefig(fig_path, dpi=150)  # <--- saves the figure
+    plt.close()  # <--- IMPORTANT on OSC to avoid memory leak    
 
     acc, prec, rec = evaluate_model(model, test_dl)
     print(f"✅ Test → Acc: {acc:.3f}, Prec: {prec:.3f}, Rec: {rec:.3f}")
